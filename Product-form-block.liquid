@@ -1,0 +1,87 @@
+ <div class="custom-product-form">
+            {% for option in product.options_with_values %}
+              <div class="option-name-container" ><h3>Select {{ option.name }}</h3>{% if forloop.first %} <h3 class='overlay-text'>{{ section.settings.overlay-text }}</h3>{% endif %}</div>
+              <div class="variants-container">
+                <div class="variants-content-wrapper">
+                  {% for value in option.values %}
+                    {% for variant in product.variants %}
+                        {% if variant.title ==value %}
+                          {% assign id=variant.id %}
+                          {% assign dimension=variant.metafields.custom.dimension %}
+                          {% assign name=variant.option1 %}
+                          {% assign image=variant.featured_media.id %}
+                          {% assign price=variant.price|money_without_currency %}
+                          {% if variant.metafields.info.accent_color !=blank %}
+                            {% assign accent_color=variant.metafields.info.accent_color %}
+                          {% endif %}
+                          {% assign compare_price = variant.compare_at_price  |money_without_currency %}
+                          {% if variant.available %}
+                            {% assign available=true %}
+                          {% else %}
+                            {% assign available=false %}
+                          {% endif %}
+                          {% assign price_array=variant.price|money_with_currency|split:' ' %}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="variant-container{% if product.selected_or_first_available_variant.id == id %} first-selected{% endif %}" data-variant-id="{{ id }}" {% if available == false %} disabled zero {% else  %}  {% unless product.selected_or_first_available_variant.id == id  %} zero {% endunless %} {% endif %} data-dimension="{{ dimension }}" {% if accent_color %}data-color="{{ accent_color }}" {% endif %}  data-name="{{ name }}" data-price="{{price  }}" data-compare-price="{{ compare_price }}" {% if image %} data-image-id="image--{{ image }}"{% endif %}>
+                      <div class="variant-info-container">
+                        <div class="variant-name">{{ value }}</div>
+                        <div class="variant-price">{{ price_array[0]}}</div>
+                      </div>
+                      <div class="variant-quantity-selector">
+                        <button class="minus" >
+                          <img class="minus minus-not-faded" width="8" src="{{ 'minus.png'|asset_url }}">
+                          <img class="minus minus-faded" width="8" src="{{ 'minus-faded.png'|asset_url }}">
+                    
+                    <!--      <svg class="minus" xmlns="http://www.w3.org/2000/svg" width="8" height="1" viewBox="0 0 8 1">
+                            <rect id="Rectangle_10730" data-name="Rectangle 10730" width="8" height="1" rx="0.5"/>
+                          </svg>-->
+                        </button>
+                        <div class="variant-quantity">{% if available %} {% if product.selected_or_first_available_variant.id == id %} 1 {% else %} 0 {% endif %} {% else %} 0 {% endif %}</div>
+                        <button class="plus">
+                        <img class="plus plus-not-faded" width="8" src="{{ 'plus.png'|asset_url }}">
+                        <img class="plus plus-faded" width="8" src="{{ 'plus-faded.png'|asset_url }}">
+                          <!--<svg class="plus" xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8">
+                            <g id="Group_5676" data-name="Group 5676" transform="translate(-1312.5 -401.5)">
+                              <rect id="Rectangle_10733" data-name="Rectangle 10733" width="8" height="1" rx="0.5" transform="translate(1312.5 405)"/>
+                              <rect id="Rectangle_10732" data-name="Rectangle 10732" width="8" height="1" rx="0.5" transform="translate(1317 401.5) rotate(90)"/>
+                            </g>
+                          </svg> -->
+                        </button>
+                        
+                      </div>
+                    </div>
+                  {% endfor %}
+                  <script type="application/json">
+                    {{ product.variants | json }}
+                  </script>
+                </div>
+               <div class="gifts-container">
+                    <div class="variant-dimen-info">
+                      <div class="variant-name">{{  product.selected_or_first_available_variant.title }}</div>
+                      <div class="variant-dimension">{{ product.selected_or_first_available_variant.metafields.custom.dimension }}</div>
+                    </div>
+              </div>
+              <div class="error-msg">
+              </div>
+              <div class="cart-btn-container">
+              <button class="cart-btn button" {% unless product.selected_or_first_available_variant.available %} disabled {% endunless%}>
+              <div class="cart-btn-text">Add To Cart (<p class="total">{% if product.selected_or_first_available_variant.available %}{{ product.selected_or_first_available_variant.price|money_with_currency|split:' '|first }}{% else %} $0.00 {% endif %}</p>)</div>
+              <div class="loading-overlay__spinner">
+                <svg aria-hidden="true" focusable="false" class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+                  <circle class="path" fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle>
+                </svg>
+              </div>
+              </button>
+              </div>
+              </div>
+              <script src="{{ 'custom-add-to-cart.js' |asset_url}}"></script>
+            {% endfor %}
+            </div>
+            {{ 'custom-product-form.js'|asset_url|script_tag }}
+            {%- when 'share' -%}
+              {% assign share_url = product.selected_variant.url | default: product.url | prepend: request.origin %}
+              {% render 'share-button',
+                block: block,
+                share_link: share_url
+              %}
